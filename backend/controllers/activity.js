@@ -1,120 +1,115 @@
 import Activity from "../models/activity.js";
 import User from "../models/user.js";
 
+
 export const logActivity = async (req, res) => {
   try {
     const userId = req.user._id;
     const { activityType, contentId } = req.body;
     const today = new Date().toISOString().split("T")[0];
 
-    const alreadyLogged = await Activity.findOne({ 
-      userId, 
-      activityType, 
-      contentId, 
-      date: today 
-    });
-
+    const alreadyLogged = await Activity.findOne({ userId, activityType, contentId, date: today });
     if (alreadyLogged) {
-      return res.status(200).json({ 
-        success: true, 
-        message: "Already logged for today", 
-        alreadyDone: true 
-      });
+      return res.status(200).json({ success: true, message: "Already logged for today", alreadyDone: true });
     }
 
-    // --- 2. CREATE LOG (Agar pehle nahi kiya hai) ---
     const newActivity = new Activity({
       userId,
       activityType,
       contentId,
-      points: 10, // Fixed points
+      points: 10,
       date: today
     });
-
     await newActivity.save();
 
-    // --- 3. STREAK & POINTS LOGIC ---
     const user = await User.findById(userId);
-    
-    // Points add karo
-    user.totalPoints = (user.totalPoints || 0) + 10;
-    
-    // Streak logic
+
+    user.totalPoints = (user.totalPoints || 0) + newActivity.points;
+
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     const yesterdayStr = yesterday.toISOString().split("T")[0];
 
     if (user.lastLoginDate === yesterdayStr) {
-      user.streak += 1;
+      user.streak = (user.streak || 0) + 1;
     } else if (user.lastLoginDate !== today) {
       user.streak = 1;
     }
-    
+
     user.lastLoginDate = today;
+
     await user.save();
 
-    res.status(201).json({ 
-      success: true, 
-      message: "Activity logged & points earned!", 
-      streak: user.streak, 
-      points: user.totalPoints 
+    res.status(201).json({
+      success: true,
+      streak: user.streak,
+      points: user.totalPoints
     });
 
   } catch (error) {
+    console.error(error);
     res.status(500).json({ success: false, error: error.message });
   }
 };
-/**
- * 2. Get Today's Activity (For Dashboard Load)
- */
+
 export const getTodayActivity = async (req, res) => {
   try {
     const userId = req.user._id;
     const today = new Date().toISOString().split("T")[0];
-    const activity = await Activity.findOne({ userId, date: today });
-
-    if (!activity) return res.status(404).json({ logged: false, message: "No data for today" });
-    
-    res.status(200).json({ logged: true, activity });
-  } catch (error) {
-    res.status(500).json({ message: "Error fetching data" });
-  }
-};
-
-/**
- * 3. Weekly Statistics (For Charts)
- */
-export const getWeeklyStats = async (req, res) => {
-  try {
-    const userId = req.user._id;
-    const endDate = new Date().toISOString().split("T")[0];
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - 7);
-    const startDateStr = startDate.toISOString().split("T")[0];
 
     const activities = await Activity.find({
       userId,
-      date: { $gte: startDateStr, $lte: endDate }
-    }).sort({ date: 1 });
-
-    if (!activities.length) return res.status(404).json({ message: "No data found" });
-
-    // Calculating Averages
-    const avgMood = (activities.reduce((s, a) => s + a.mood.level, 0) / activities.length).toFixed(1);
-    const avgScore = (activities.reduce((s, a) => s + a.progressScore, 0) / activities.length).toFixed(1);
+      date: today
+    });
 
     res.status(200).json({
-      avgMood,
-      avgProgress: avgScore,
-      totalDaysLogged: activities.length,
-      history: activities.map(a => ({ 
-        date: a.date, 
-        score: a.progressScore,
-        mood: a.mood.level 
-      }))
+      logged: activities.length > 0,
+      activities
     });
+
   } catch (error) {
-    res.status(500).json({ message: "Error calculating stats" });
+    res.status(500).json({
+      message: "Error fetching data"
+    });
+  }
+};
+
+// Weekly points aggregation
+export const getWeeklyActivity = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const today = new Date();
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(today.getDate() - 6); // Last 7 days
+
+    // Get activities from last 7 days
+    const activities = await Activity.find({
+      userId,
+      date: { $gte: sevenDaysAgo.toISOString().split("T")[0], $lte: today.toISOString().split("T")[0] }
+    });
+
+    // Aggregate points by day
+    const pointsByDay = {};
+    for (let i = 0; i < 7; i++) {
+      const d = new Date();
+      d.setDate(today.getDate() - i);
+      const dayStr = d.toISOString().split("T")[0];
+      pointsByDay[dayStr] = 0;
+    }
+
+    activities.forEach(act => {
+      pointsByDay[act.date] = (pointsByDay[act.date] || 0) + act.points;
+    });
+
+    // Convert to chart array
+    const chartData = Object.keys(pointsByDay)
+      .sort()
+      .map(date => ({ date, score: pointsByDay[date] }));
+
+    res.status(200).json(chartData);
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 

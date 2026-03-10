@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { serverURL } from "../../App";
 import { setWellnessData } from "../../redux/wellnessSlice";
-import { FiCheckCircle } from 'react-icons/fi';
+import { setActivityData } from '../../redux/activitySlice';
 
 const videos = [
     "https://www.youtube.com/embed/inpok4MKVLM",
@@ -14,14 +14,15 @@ const videos = [
 export default function MindSection() {
     const [showVideos, setShowVideos] = useState(false)
     const { wellnessData } = useSelector(state => state.wellness);
+    const { activityData } = useSelector(state => state.activity);
     const dispatch = useDispatch();
+    const [isRead, setIsRead] = useState(false);
     const [loading, setLoading] = useState(false);
 
     const fetchMindWellness = useCallback(async () => {
         if (wellnessData?.wellness?.mind) {
             return;
         }
-
         setLoading(true);
         try {
             const res = await axios.get(serverURL + `/api/wellness/get-wellness`, { withCredentials: true });
@@ -39,6 +40,49 @@ export default function MindSection() {
 
     const mindData = wellnessData?.wellness?.mind;
 
+
+const logActivity = async () => {
+    setIsRead(true);
+
+    try {
+      const response = await axios.post(
+        serverURL + `/api/activity/log`,
+        {
+          activityType: "mind",
+          contentId: "Mindful Habit"
+        },
+        { withCredentials: true }
+      );
+
+      dispatch(setActivityData(response.data));
+
+      if (response.data.alreadyDone || response.data.success) {
+        setIsRead(true);
+      }
+
+    } catch (error) {
+      setIsRead(false);
+      console.error("Error logging activity:", error);
+      alert(error.response?.data?.error || "Logging failed");
+    }
+  };
+
+
+  useEffect(() => {
+    if (!activityData) return;
+
+    const doneToday = activityData?.activities?.some(
+      act =>
+        act.contentId === "Mindful Habit" &&
+        act.activityType === "mind"
+    );
+
+    if (doneToday) {
+      setIsRead(true);
+    }
+
+  }, [activityData]);
+
     if (loading) return (
         <div className="flex flex-col justify-center items-center h-96">
             <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-orange-500 mb-4"></div>
@@ -46,20 +90,6 @@ export default function MindSection() {
         </div>
     );
 
-    const logActivity = async (taskName, category = "Mind") => {
-        try {
-            // Ye API tere backend mein points aur progress track karegi
-            await axios.post(serverURL + `/api/wellness/log-activity`, {
-                taskName,
-                category
-            }, { withCredentials: true });
-
-            alert(`${taskName} logged! Points earned. 🚀`);
-            // Yahan tu chahe toh wellnessData refresh kar sakta hai
-        } catch (error) {
-            console.error("Error logging activity:", error);
-        }
-    };
     return (
         <div className="max-w-6xl mx-auto px-6 py-14">
             {showVideos ? (
@@ -93,7 +123,7 @@ export default function MindSection() {
 
                         <button
                             onClick={() => setShowVideos(true)}
-                            className="px-7 py-3 rounded-full bg-gradient-to-r from-orange-400 to-orange-600 text-white font-medium shadow-md hover:scale-105 active:scale-95 transition"
+                            className="px-7 py-3 rounded-full bg-linear-to-r from-orange-400 to-orange-600 text-white font-medium shadow-md hover:scale-105 active:scale-95 transition"
                         >
                             Meditation
                         </button>
@@ -101,15 +131,23 @@ export default function MindSection() {
 
                     <div className="grid lg:grid-cols-3 gap-6">
 
-                        <div className="lg:col-span-2 bg-gradient-to-br from-orange-50 to-white border border-orange-100 rounded-3xl p-10 shadow-sm">
+                        <div className="lg:col-span-2 bg-linear-to-br from-orange-50 to-white border border-orange-100 rounded-3xl p-10 shadow-sm">
                             <h2 className="text-orange-500 font-semibold">Today's Thought</h2>
                             <p className="mt-6 text-2xl leading-relaxed text-gray-800 italic">“{mindData?.todayThought || "Loading daily wisdom..."}”</p>
                             <button
-                                onClick={() => logActivity("Mindful Habit", "Mind", 15)}
-                                className="w-full mt-4 py-3 bg-orange-500 text-white font-bold rounded-xl shadow-md hover:bg-orange-600 active:scale-95 transition-all flex items-center justify-center gap-2"
+                                disabled={isRead}
+                                onClick={logActivity}
+                                className={`w-full mt-4 py-3 text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2
+                ${isRead
+                                        ? "bg-green-500"
+                                        : "bg-orange-500 hover:bg-orange-600"
+                                    }`}
                             >
-                                Habit Maintained ⚡
-                                <span className="text-xs bg-white/20 px-2 py-0.5 rounded-lg text-orange-100">+10 Pts</span>
+                                {isRead ? "Completed ✓" : "Habit Maintained ⚡"}
+
+                                <span className="text-xs bg-white/20 px-2 py-0.5 rounded-lg text-orange-100">
+                                    +10 Pts
+                                </span>
                             </button>
                         </div>
 
@@ -139,7 +177,6 @@ export default function MindSection() {
                             )}
                         </div>
                     </div>
-
                 </div>
             )}
         </div>

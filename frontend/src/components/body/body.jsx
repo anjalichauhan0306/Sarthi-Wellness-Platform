@@ -3,13 +3,17 @@ import { useDispatch, useSelector } from "react-redux";
 import { serverURL } from "../../App";
 import { setWellnessData } from "../../redux/wellnessSlice";
 import { useEffect, useState, useCallback } from "react";
+import { setActivityData } from "../../redux/activitySlice";
 
 export default function BodySection() {
     const { userData } = useSelector(state => state.user);
     const { wellnessData } = useSelector(state => state.wellness);
     const dispatch = useDispatch();
+    const [isDone, setIsDone] = useState(false);
     const [loading, setLoading] = useState(false);
     const cleanURL = serverURL.endsWith('/') ? serverURL.slice(0, -1) : serverURL;
+    const [isCompleting, setIsCompleting] = useState(false);
+    const { activityData } = useSelector(state => state.activity);
 
     const bodyData = wellnessData?.wellness?.body || {
         waterIntake: loading ? "Calculating..." : "No data",
@@ -19,19 +23,6 @@ export default function BodySection() {
         healthyChoice: loading ? "Selecting..." : "No data"
     };
 
-    const [isCompleting, setIsCompleting] = useState(false);
-const [completed, setCompleted] = useState(wellnessData?.wellness?.body?.completed || false);
-const markBodyDone = async () => {
-    setIsCompleting(true);
-    try {
-        // Your API call here...
-        setCompleted(true);
-    } catch (e) {
-        console.log("Error", e);
-    } finally {
-        setIsCompleting(false);
-    }
-};
     const calculateStats = () => {
         if (!userData?.weight || !userData?.height) return null;
         const heightInMeters = userData.height / 100;
@@ -72,8 +63,49 @@ const markBodyDone = async () => {
         }
     }, [wellnessData, fetchOrGenerateWellness]);
 
-    const stats = calculateStats();
+    const logActivity = async (taskName, category = "body") => {
+        setIsCompleting(true);
 
+        try {
+            const response = await axios.post(
+                serverURL + `/api/activity/log`,
+                {
+                    activityType: category.toLowerCase(),
+                    contentId: taskName,
+                },
+                { withCredentials: true }
+            );
+
+            dispatch(setActivityData(response.data));
+
+            if (response.data.alreadyDone) {
+                setIsDone(true);
+            } else if (response.data.success) {
+                setIsDone(true);
+            }
+
+        } catch (error) {
+            console.error("Error logging activity:", error);
+            alert(error.response?.data?.error || "Logging failed");
+        } finally {
+            setIsCompleting(false);
+        }
+    };
+    useEffect(() => {
+        if (!activityData) return;
+
+        const doneToday = activityData?.activities?.some(
+            (act) =>
+                act.contentId === "Healthy Choice" &&
+                act.activityType === "body"
+        );
+
+        if (doneToday) {
+            setIsDone(true);
+        }
+    }, [activityData]);
+
+    const stats = calculateStats();
     return (
         <div className="max-w-5xl mx-auto px-6 py-12">
             <div className="text-center mb-12 animate-fade">
@@ -108,7 +140,6 @@ const markBodyDone = async () => {
                     <h3 className="text-xl font-semibold text-blue-600 mb-2">💧 Water Intake</h3>
                     <p className="text-gray-700 font-medium">{bodyData.waterIntake}</p>
                 </div>
-
                 <div className="grid md:grid-cols-3 gap-6">
                     {['Breakfast', 'Lunch', 'Dinner'].map((meal) => (
                         <div key={meal} className="bg-white p-6 rounded-2xl border border-orange-100 shadow-sm hover:shadow-md transition">
@@ -117,58 +148,36 @@ const markBodyDone = async () => {
                         </div>
                     ))}
                 </div>
-                <div className="mt-10 bg-green-50 border border-green-100 p-8 rounded-2xl text-center">
-                    <h3 className="text-xl font-semibold text-green-600">Today’s Healthy Choice</h3>
-                    <p className="mt-3 text-gray-800 text-lg font-medium italic">"{bodyData.healthyChoice}"</p>
+                <div className="mt-10 bg-linear-to-br from-green-50 to-white border border-green-100 p-10 rounded-[2.5rem] text-center shadow-sm">
+                    <h3 className="text-sm font-bold text-green-600 uppercase tracking-widest mb-4">Today’s Healthy Choice</h3>
+
+                    <p className="text-xl md:text-2xl text-gray-800 font-semibold italic leading-relaxed mb-8">
+                        "{bodyData.healthyChoice}"
+                    </p>
+
+                    <button
+                        onClick={() => logActivity("Healthy Choice", "Body")}
+                        disabled={isCompleting || isDone}
+                        className={`mx-auto flex items-center gap-3 px-10 py-4 text-white font-bold rounded-2xl shadow-lg active:scale-95 transition-all 
+    ${isDone ? "bg-green-400 cursor-not-allowed" : "bg-green-500 hover:bg-green-600 shadow-green-200"}`}
+                    >
+                        {isCompleting ? (
+                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                            <span className="text-xl">{isDone ? "✅" : "💪"}</span>
+                        )}
+
+                        <span>
+                            {isCompleting ? "Logging..." : isDone ? "Done" : "I Chose Health"}
+                        </span>
+
+                        {!isDone && (
+                            <span className="ml-2 bg-white/20 px-2 py-0.5 rounded-lg text-xs">+10 Pts</span>
+                        )}
+                    </button>
+                    <p className="mt-4 text-xs text-green-600/60 font-medium">Click after you complete your healthy choice for today</p>
                 </div>
             </div>
-            {/* Fixed Action Container - This keeps everything organized */}
-            {/* Mark as Done - Floating above the Global Chat Button */}
-{!completed && (
-    <div className="fixed bottom-28 right-6 z-[90] animate-in slide-in-from-bottom-5 duration-500">
-        <button
-            onClick={markBodyDone}
-            disabled={isCompleting}
-            className="group relative flex items-center gap-4 bg-[#1a1c1e] hover:bg-black text-white pl-5 pr-2 py-2 rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.3)] border border-white/10 transition-all duration-300 active:scale-95"
-        >
-            <div className="flex flex-col items-start">
-                <span className="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-0.5">
-                    Daily Goal
-                </span>
-                <span className="text-xs font-bold tracking-tight">
-                    {isCompleting ? "Processing..." : "Mark as Done"}
-                </span>
-            </div>
-
-            <div className="bg-white/5 px-3 py-2 rounded-xl flex items-center gap-2 group-hover:bg-orange-600 transition-colors border border-white/5">
-                {isCompleting ? (
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                    <>
-                        <span className="text-sm">⚡</span>
-                        <span className="text-[11px] font-black">+10 XP</span>
-                    </>
-                )}
-            </div>
-            
-            {/* Subtle Pulse Effect */}
-            <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-orange-500"></span>
-            </span>
-        </button>
-    </div>
-)}
-
-{/* Subtle Achievement Pill */}
-{completed && (
-    <div className="fixed bottom-28 right-6 z-[90] animate-in zoom-in duration-300">
-        <div className="bg-emerald-50 border border-emerald-200 text-emerald-600 px-4 py-2 rounded-xl shadow-sm flex items-center gap-2">
-            <span className="text-[10px] font-black uppercase">Goal Achieved</span>
-            <span className="bg-emerald-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px]">✓</span>
-        </div>
-    </div>
-)}
         </div>
     );
 }
