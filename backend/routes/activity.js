@@ -1,9 +1,9 @@
 import express from "express";
-import { 
+import {
   getTodayActivity,
   getWeeklyActivity,
-  logActivity, 
-} from "../controllers/activity.js"; 
+  logActivity,
+} from "../controllers/activity.js";
 import protect from "../middleware/Auth.js";
 
 const activityRouter = express.Router();
@@ -12,6 +12,5 @@ activityRouter.use(protect);
 activityRouter.post("/log", logActivity);
 activityRouter.get("/today", getTodayActivity);
 activityRouter.get("/stats", getWeeklyActivity);
-// activityRouter.get("/mood-trend", getMoodTrend);
 
 export default activityRouter;

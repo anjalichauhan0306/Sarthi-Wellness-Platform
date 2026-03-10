@@ -31,7 +31,7 @@ const soulSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    date : {type : String , unique: true} ,
+    date: { type: String, unique: true },
   },
   { timestamps: true },
 );

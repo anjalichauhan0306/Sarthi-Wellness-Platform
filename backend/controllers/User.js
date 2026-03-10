@@ -1,8 +1,6 @@
 import bcrypt from "bcrypt";
 import User from "../models/user.js";
 import setTokenCookie from "../utils/token.js";
-import Activity from "../models/activity.js";
-import wellness from "../models/wellness.js";
 
 export const registerUser = async (req, res) => {
   try {
@@ -26,7 +24,7 @@ export const registerUser = async (req, res) => {
     res.status(500).json({ message: "Register failed" });
   }
 };
-///==== login ========//////
+
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -50,13 +48,12 @@ export const loginUser = async (req, res) => {
     res.status(500).json({ message: "Login failed" });
   }
 };
-///===========logout ======//////////
+
 export const logoutUser = (req, res) => {
   res.cookie("token", "", { maxAge: 0 });
   res.json({ message: "Logged out" });
 };
 
-/* ================= GET PROFILE ================= */
 export const getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select("-password");
@@ -67,7 +64,7 @@ export const getProfile = async (req, res) => {
   }
 };
 
-/* ================= UPDATE PROFILE (ONBOARDING FORM) ================= */
+
 export const updateProfile = async (req, res) => {
   try {
     const updatedUser = await User.findByIdAndUpdate(
@@ -84,33 +81,7 @@ export const updateProfile = async (req, res) => {
     res.status(500).json({ message: "Profile update failed" });
   }
 };
-////======auth============
+
 export const checkauth = (req, res) => {
   res.send(!!req.user);
-};
-
-
-
-export const getDashboard = async(req,res)=>{
-
-const userId = req.user._id;
-
-const today = new Date().toISOString().split("T")[0];
-
-const activity = await Activity.findOne({userId,date:today});
-
-const wellness = await wellness.findOne({userId,date:today});
-
-res.json({
-
-date:today,
-
-progressScore:activity?.progressScore || 0,
-
-activity,
-
-wellness
-
-});
-
 };

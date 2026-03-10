@@ -46,7 +46,6 @@ const generateShlokData = async () => {
     const response = await result.response;
     const text = response.text();
 
-    // Direct parsing because of responseMimeType: "application/json"
     return JSON.parse(text);
   } catch (error) {
     console.error("❌ AI Generation Error:", error.message);
@@ -54,25 +53,17 @@ const generateShlokData = async () => {
   }
 };
 
-/**
- * GET Daily Shlok - Automatically handles generation if missing
- */
 export const getDailyShlok = async (req, res) => {
   try {
     const todayDate = new Date().toISOString().split("T")[0];
 
-    // 1. Double-Check/Locking logic: Use findOne
     let shlokData = await Shlok.findOne({ date: todayDate });
 
     if (shlokData) {
       return res.status(200).json(shlokData);
     }
 
-    // 2. Generate if not found
     const aiData = await generateShlokData();
-
-    // 3. Use findOneAndUpdate with 'upsert' to prevent race conditions
-    // Agar do requests ek saath aayi, toh ek hi document create hoga
     shlokData = await Shlok.findOneAndUpdate(
       { date: todayDate },
       { $setOnInsert: { ...aiData, date: todayDate } },
@@ -92,14 +83,10 @@ export const getDailyShlok = async (req, res) => {
   }
 };
 
-/**
- * Admin Trigger - Manually force generate today's shlok
- */
 export const generateDailyShlok = async (req, res) => {
   try {
     const todayDate = new Date().toISOString().split("T")[0];
 
-    // Prevent duplicate manual generation
     const exists = await Shlok.exists({ date: todayDate });
     if (exists) {
       return res.status(400).json({ message: "Today's shlok already exists." });

@@ -1,10 +1,9 @@
 import wellnessContent from "../models/wellness.js";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import dotenv from "dotenv"; 
+import dotenv from "dotenv";
 
 dotenv.config();
 
-// 1. Correct Initialization
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 export const generateDailyWellness = async (req, res) => {
@@ -12,13 +11,16 @@ export const generateDailyWellness = async (req, res) => {
     const userId = req.user._id;
     const userName = req.user?.username || "User";
     const today = new Date().toISOString().split("T")[0];
-    const { name, weight, height, goal, targetWeight , } = req.user;
+    const { name, weight, height, goal, targetWeight } = req.user;
     const exist = await wellnessContent.findOne({ userId, date: today });
-    if (exist) return res.status(400).json({ message: "Plan already exists.", wellness: exist });
+    if (exist)
+      return res
+        .status(400)
+        .json({ message: "Plan already exists.", wellness: exist });
 
     const model = genAI.getGenerativeModel({
       model: "gemini-2.5-flash",
-      generationConfig: { responseMimeType: "application/json" } 
+      generationConfig: { responseMimeType: "application/json" },
     });
 
     const prompt = `
@@ -58,39 +60,43 @@ export const generateDailyWellness = async (req, res) => {
       userId,
       date: today,
       body: parsedData.body,
-      mind: parsedData.mind
+      mind: parsedData.mind,
     });
 
     res.status(201).json({ message: "Success", wellness: newWellness });
-
   } catch (error) {
     console.error("Wellness Error:", error);
-    res.status(500).json({ message: "AI Generation Failed", error: error.message });
+    res
+      .status(500)
+      .json({ message: "AI Generation Failed", error: error.message });
   }
 };
 
 export const getWellnessData = async (req, res) => {
   try {
     const userId = req.user._id;
-    const { date } = req.query; 
-    
+    const { date } = req.query;
+
     const targetDate = date || new Date().toISOString().split("T")[0];
 
-    const wellness = await wellnessContent.findOne({ userId, date: targetDate });
+    const wellness = await wellnessContent.findOne({
+      userId,
+      date: targetDate,
+    });
 
     if (!wellness) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         message: "No wellness data found for this date",
-        shouldGenerate: true 
+        shouldGenerate: true,
       });
     }
 
     res.status(200).json({ wellness });
   } catch (error) {
     console.error("Error in getWellnessData:", error);
-    res.status(500).json({ 
-      message: "Internal Server Error", 
-      error: error.message 
+    res.status(500).json({
+      message: "Internal Server Error",
+      error: error.message,
     });
   }
 };

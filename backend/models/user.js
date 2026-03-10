@@ -2,8 +2,6 @@ import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
-    /* ================= AUTH ================= */
-
     username: {
       type: String,
       required: true,
@@ -25,7 +23,6 @@ const userSchema = new mongoose.Schema(
       minlength: 6,
     },
 
-    /* ================= BASIC PROFILE ================= */
 
     gender: {
       type: String,
@@ -34,8 +31,8 @@ const userSchema = new mongoose.Schema(
     },
 
     age: Number,
-    height: Number, // cm
-    weight: Number, // kg
+    height: Number, 
+    weight: Number, 
 
     targetWeight: Number,
 
@@ -53,7 +50,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ["veg", "non_veg", "vegan"],
     },
-    /* ================= MIND WELLNESS ================= */
     mentalState: {
       overthinking: Boolean,
       stress: Boolean,
@@ -65,30 +61,27 @@ const userSchema = new mongoose.Schema(
       min: 1,
       max: 10,
     },
-    /* ================= LIFESTYLE ================= */
 
     lifestyle: {
       screenTimeHours: Number,
       sleepHours: Number,
       exercise: {
         type: String,
-        enum: ["Never","1-2 / week","3-5 / week","Daily"],
+        enum: ["Never", "1-2 / week", "3-5 / week", "Daily"],
       },
       workType: {
         type: String,
-        enum: ["Student","Working","Business"],
+        enum: ["Student", "Working", "Business"],
       },
     },
-
-    /* ================= SYSTEM ================= */
 
     isProfileComplete: {
       type: Boolean,
       default: false,
     },
-streak: { type: Number, default: 0 },
-lastLoginDate: { type: String },
-totalPoints : {type : String}
+    streak: { type: Number, default: 0 },
+    lastLoginDate: { type: String },
+    totalPoints: { type: String },
   },
   { timestamps: true },
 );
