@@ -1,6 +1,9 @@
 import bcrypt from "bcrypt";
 import User from "../models/user.js";
 import setTokenCookie from "../utils/token.js";
+import Activity from "../models/activity.js";
+import wellness from "../models/wellness.js";
+
 export const registerUser = async (req, res) => {
   try {
     const { username, email, password } = req.body;
@@ -87,8 +90,6 @@ export const checkauth = (req, res) => {
 };
 
 
-import Activity from "../models/activity.js";
-import Wellness from "../models/wellnessContent.js";
 
 export const getDashboard = async(req,res)=>{
 
@@ -98,7 +99,7 @@ const today = new Date().toISOString().split("T")[0];
 
 const activity = await Activity.findOne({userId,date:today});
 
-const wellness = await Wellness.findOne({userId,date:today});
+const wellness = await wellness.findOne({userId,date:today});
 
 res.json({
 

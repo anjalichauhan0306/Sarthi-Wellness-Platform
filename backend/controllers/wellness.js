@@ -1,4 +1,4 @@
-import wellnessContent from "../models/wellnessContent.js";
+import wellnessContent from "../models/wellness.js";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import dotenv from "dotenv"; 
 

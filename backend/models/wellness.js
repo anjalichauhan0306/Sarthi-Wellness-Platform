@@ -7,7 +7,7 @@ const wellnessSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    date: { type: String, required: true }, // Format: YYYY-MM-DD
+    date: { type: String, required: true },
     body: {
       waterIntake: String,
       breakfast: String,
