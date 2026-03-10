@@ -1,10 +1,10 @@
 import { useEffect } from "react";
-import axios from 'axios';
 import { useDispatch, useSelector } from "react-redux";
 import { setShlokData } from "../../redux/shlokSlice";
 import { useState } from "react";
-import { serverURL } from "../../App";
 import { setActivityData } from "../../redux/activitySlice";
+import { getDailyShlok } from "../../api/soulapi";
+import { logActivityApi } from "../../api/activityapi";
 
 export default function SoulPage() {
     const { shlokData } = useSelector(state => state.shlok)
@@ -20,11 +20,10 @@ export default function SoulPage() {
     const fetchDailyShlok = async () => {
         try {
             setLoading(true);
-            const response = await axios.post(`${serverURL}/api/soul/today`, {
-                withCredentials: true
-            });
-            dispatch(setShlokData(response.data));
-        } catch (err) {
+            const data = await getDailyShlok();
+            dispatch(setShlokData(data));
+        }
+        catch (err) {
             console.log(err)
         } finally {
             setLoading(false);
@@ -39,20 +38,12 @@ export default function SoulPage() {
         setIsRead(true);
 
         try {
-            const response = await axios.post(
-                serverURL + `/api/activity/log`,
-                {
-                    activityType: category.toLowerCase(),
-                    contentId: taskName,
-                },
-                { withCredentials: true }
-            );
+           const data = await logActivityApi(category.toLowerCase(), taskName);
+            dispatch(setActivityData(data));
 
-            dispatch(setActivityData(response.data));
-
-            if (response.data.alreadyDone) {
+            if (data.alreadyDone) {
                 setIsRead(true);
-            } else if (response.data.success) {
+            } else if (data.success) {
                 setIsRead(true);
             }
 
@@ -85,7 +76,6 @@ export default function SoulPage() {
         <>
 
             <div className="max-w-5xl mx-auto px-6 py-12">
-                {/* Top Action Bar */}
                 <div className="max-w-5xl mx-auto px-6 pt-6 flex justify-end">
                     {!isRead ? (
                         <button
@@ -156,17 +146,6 @@ export default function SoulPage() {
                     </p>
                 </div>
             </div>
-            {/* <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] 
-                bg-gradient-to-r from-orange-100 to-orange-50 
-                border-y border-orange-200 py-14  text-center -mt-8">
-                <h3 className="text-2xl font-semibold text-orange-600">
-                    Life Lesson
-                </h3>
-                <p className="mt-4 text-gray-800 text-lg max-w-4xl mx-auto px-6 leading-relaxed">
-                    {shlokData.lifeLesson}
-                </p>
-            </div> */}
-
         </>
     );
 }

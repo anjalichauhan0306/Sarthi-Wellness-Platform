@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { FiZap, FiActivity, FiClock, FiTrendingUp } from "react-icons/fi";
-import axios from "axios";
-import { serverURL } from "../../App";
 import { useSelector } from "react-redux";
+import { getActivityStats } from "../../api/activityapi";
 
 export default function Progress() {
   const { userData } = useSelector((state) => state.user);
@@ -15,17 +14,15 @@ export default function Progress() {
   useEffect(() => {
     const fetchWeekly = async () => {
       try {
-        const res = await axios.get(`${serverURL}/api/activity/stats`, {
-          withCredentials: true,
-        });
-        const chartData = (res.data || []).map((item) => ({
+        const res = await getActivityStats();
+        const chartData = (res || []).map((item) => ({
           name: new Date(item.date).toLocaleDateString("en-US", {
             weekday: "short",
           }),
           score: item.score,
         }));
         setWeeklyData(chartData);
-        console.log(res.data);
+        console.log(res);
       } catch (err) {
         console.error(err);
       }

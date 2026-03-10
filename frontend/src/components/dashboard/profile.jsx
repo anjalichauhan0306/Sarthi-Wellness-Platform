@@ -2,9 +2,8 @@ import { useState } from "react";
 import { Formik } from "formik";
 import * as Yup from "yup";
 import { setUserData } from "../../redux/userSlice.js";
-import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
-import { serverURL } from "../../App.jsx";
+import { updateUserProfile } from "../../api/userapi.js";
 
 const schema = Yup.object({
     username: Yup.string().required("Username required"),
@@ -82,12 +81,7 @@ export default function UserProfileForm() {
                 },
             };
 
-            const { data } = await axios.post(
-                serverURL + "/api/user/updateprofile",
-                payload,
-                { withCredentials: true }
-            );
-
+            const data = await updateUserProfile(payload);
             dispatch(setUserData(data));
             setSavedProfile(data);
             setIsEditing(false);

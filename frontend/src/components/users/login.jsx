@@ -1,12 +1,11 @@
 import { Link } from "react-router-dom";
 import { Formik } from "formik";
 import * as Yup from "yup";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
 import { setUserData } from "../../redux/userSlice";
-import { serverURL } from "../../App";
 import { useDispatch } from "react-redux";
+import { loginUser } from "../../api/userapi";
+
 
 const loginSchema = Yup.object({
     email: Yup.string().email("Enter valid email").required("Email is required"),
@@ -17,16 +16,14 @@ const loginSchema = Yup.object({
 
 
 const Login = () => {
-    const {userData} = useSelector(state=>state.user);
-
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const handleSubmit = async (values) => {
         try {
-            const response = await axios.post(serverURL + "/api/user/login", values, { withCredentials: true });
-            dispatch(setUserData(response.data));
+           const data = await loginUser(values);
+            dispatch(setUserData(data));
             navigate("/dashboard");
-            console.log(response.data);
+            console.log(data);
         } catch (error) {
             console.error("Login failed:", error.response ? error.response.data : error.message);
             dispatch(setUserData(null));

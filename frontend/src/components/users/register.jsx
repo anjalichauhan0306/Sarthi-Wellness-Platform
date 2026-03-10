@@ -1,11 +1,10 @@
 import { Link } from "react-router-dom";
 import { Formik } from "formik";
-import * as Yup from "yup";
-import axios from "axios";
+import * as Yup from "yup"
 import { useNavigate } from "react-router-dom";
-import { serverURL } from "../../App";
 import { useDispatch, useSelector } from "react-redux";
 import { setUserData } from "../../redux/userSlice";
+import { registerUser } from "../../api/userapi";
 
 const registerSchema = Yup.object({
     username: Yup.string()
@@ -23,12 +22,11 @@ const registerSchema = Yup.object({
 export default function RegisterPage() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const {userData} = useSelector(state=>state.user);
     const handleSubmit = async (values) => {
         try {
-            const response = await axios.post(serverURL + "/api/user/register", values);    
-            dispatch(setUserData(response.data));
-            console.log(response.data);
+            const data = await registerUser(values)   
+            dispatch(setUserData(data));
+            console.log(data);
             navigate("/dashboard");
         } catch (error) {
             console.error("Registration failed:", error.response ? error.response.data : error.message);

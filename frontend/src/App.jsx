@@ -13,8 +13,7 @@ import MindSection from "./components/mind/mind";
 import UserProfileForm from "./components/dashboard/profile";
 import GetCurrentUser from "./customHook/getCurrentUser";
 import { useSelector } from "react-redux";
-import Activity from "./components/users/activity";
-import Dashboardw from "./components/users/dashboard";
+import Activity from "./components/activity/activity";
 import GetUserActivity from "./customHook/getUserActivity";
 
 export const serverURL = "http://localhost:5000";
@@ -57,12 +56,6 @@ export default function App() {
           path="/activity"
           element={<Activity/>}
         />
-       
-        <Route
-          path="/home"
-          element={<Dashboardw/>}
-        />
-       
        
       </Routes>
     </>

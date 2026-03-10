@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useDispatch, useSelector } from "react-redux";
-import axios from "axios";
-import { serverURL } from "../../App";
 import { setWellnessData } from "../../redux/wellnessSlice";
 import { setActivityData } from '../../redux/activitySlice';
+import { logActivityApi } from '../../api/activityapi';
+import { getWellness } from '../../api/wellnessapi';
 
 const videos = [
     "https://www.youtube.com/embed/inpok4MKVLM",
@@ -25,8 +25,8 @@ export default function MindSection() {
         }
         setLoading(true);
         try {
-            const res = await axios.get(serverURL + `/api/wellness/get-wellness`, { withCredentials: true });
-            dispatch(setWellnessData(res.data));
+            const data = await getWellness();
+            dispatch(setWellnessData(data));
         } catch (error) {
             console.error("Mind data fetch error:", error);
         } finally {
@@ -45,19 +45,15 @@ const logActivity = async () => {
     setIsRead(true);
 
     try {
-      const response = await axios.post(
-        serverURL + `/api/activity/log`,
-        {
-          activityType: "mind",
-          contentId: "Mindful Habit"
-        },
-        { withCredentials: true }
+      const data = await logActivityApi(
+        category.toLowerCase(),
+        taskName
       );
 
-      dispatch(setActivityData(response.data));
+      dispatch(setActivityData(data));
 
-      if (response.data.alreadyDone || response.data.success) {
-        setIsRead(true);
+      if (data.alreadyDone || data.success) {
+        setIsDone(true);
       }
 
     } catch (error) {

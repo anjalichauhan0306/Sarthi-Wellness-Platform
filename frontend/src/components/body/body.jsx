@@ -4,6 +4,8 @@ import { serverURL } from "../../App";
 import { setWellnessData } from "../../redux/wellnessSlice";
 import { useEffect, useState, useCallback } from "react";
 import { setActivityData } from "../../redux/activitySlice";
+import { getWellness, generateWellness } from "../../api/wellnessapi";
+import { logActivityApi } from "../../api/activityapi";
 
 export default function BodySection() {
     const { userData } = useSelector(state => state.user);
@@ -39,13 +41,13 @@ export default function BodySection() {
     const fetchOrGenerateWellness = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await axios.get(`${cleanURL}/api/wellness/get-wellness`, { withCredentials: true });
-            dispatch(setWellnessData(res.data));
+            const data = await getWellness();
+            dispatch(setWellnessData(data));
         } catch (error) {
             if (error.response?.status === 404) {
                 try {
-                    const genRes = await axios.post(`${cleanURL}/api/wellness/generate-wellness`, {}, { withCredentials: true });
-                    dispatch(setWellnessData(genRes.data));
+                    const generated = await generateWellness();
+                    dispatch(setWellnessData(generated));
                 } catch (genErr) {
                     console.error("Auto-generation failed", genErr);
                 }
@@ -67,20 +69,14 @@ export default function BodySection() {
         setIsCompleting(true);
 
         try {
-            const response = await axios.post(
-                serverURL + `/api/activity/log`,
-                {
-                    activityType: category.toLowerCase(),
-                    contentId: taskName,
-                },
-                { withCredentials: true }
+            const data = await logActivityApi(
+                category.toLowerCase(),
+                taskName
             );
 
-            dispatch(setActivityData(response.data));
+            dispatch(setActivityData(data));
 
-            if (response.data.alreadyDone) {
-                setIsDone(true);
-            } else if (response.data.success) {
+            if (data.alreadyDone || data.success) {
                 setIsDone(true);
             }
 
