@@ -81,7 +81,7 @@ const userSchema = new mongoose.Schema(
     },
     streak: { type: Number, default: 0 },
     lastLoginDate: { type: String },
-    totalPoints: { type: String },
+    totalPoints: { type: Number, default: 0 },
   },
   { timestamps: true },
 );

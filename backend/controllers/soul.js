@@ -64,11 +64,11 @@ export const getDailyShlok = async (req, res) => {
     }
 
     const aiData = await generateShlokData();
-    shlokData = await Shlok.findOneAndUpdate(
-      { date: todayDate },
-      { $setOnInsert: { ...aiData, date: todayDate } },
-      { upsert: true, new: true, runValidators: true },
-    );
+   shlokData = await Shlok.findOneAndUpdate(
+  { date: todayDate },
+  { $setOnInsert: { ...aiData, date: todayDate } },
+  { upsert: true, returnDocument: "after", runValidators: true },
+);
 
     return res.status(200).json(shlokData);
   } catch (error) {

@@ -46,14 +46,14 @@ const logActivity = async () => {
 
     try {
       const data = await logActivityApi(
-        category.toLowerCase(),
-        taskName
+        "mind", // category
+        "Mindful Habit" // taskName
       );
 
       dispatch(setActivityData(data));
 
       if (data.alreadyDone || data.success) {
-        setIsDone(true);
+        setIsRead(true);
       }
 
     } catch (error) {
