@@ -104,7 +104,8 @@ export const getWeeklyActivity = async (req, res) => {
     }
 
     activities.forEach((act) => {
-      pointsByDay[act.date] = (pointsByDay[act.date] || 0) + act.points;
+      const dateKey = new Date(act.date).toISOString().split("T")[0]; // normalize
+      pointsByDay[dateKey] = (pointsByDay[dateKey] || 0) + act.points;
     });
 
     const chartData = Object.keys(pointsByDay)

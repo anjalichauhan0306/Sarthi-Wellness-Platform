@@ -7,6 +7,8 @@ import soulRouter from "./routes/soul.js";
 import wellnessRouter from "./routes/wellness.js";
 import activityRouter from "./routes/activity.js";
 import userrouter from "./routes/user.js";
+import rateLimit from "express-rate-limit";
+
 dotenv.config();
 connectDB();
 const app = express();
