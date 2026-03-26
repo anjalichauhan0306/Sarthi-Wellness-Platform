@@ -55,7 +55,7 @@ export default function Progress() {
                   Current Streak
                 </p>
                 <h3 className="text-3xl font-black text-gray-800">
-                  {userData?.streak} Days
+                  {userData?.streak || 1} Days
                 </h3>
               </div>
             </div>
@@ -70,7 +70,7 @@ export default function Progress() {
                   Total Points
                 </p>
                 <h3 className="text-3xl font-black text-gray-800">
-                  {userData?.totalPoints || 12}
+                  {userData?.totalPoints}
                 </h3>
               </div>
             </div>

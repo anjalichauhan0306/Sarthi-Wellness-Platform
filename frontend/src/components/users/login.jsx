@@ -22,7 +22,11 @@ const Login = () => {
         try {
            const data = await loginUser(values);
             dispatch(setUserData(data));
-            navigate("/dashboard");
+             if (data?.isAdmin) {
+        navigate("/admin");
+      } else {
+        navigate("/dashboard");
+      }
             console.log(data);
         } catch (error) {
             console.error("Login failed:", error.response ? error.response.data : error.message);

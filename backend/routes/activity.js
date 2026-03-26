@@ -13,4 +13,6 @@ activityRouter.post("/log", logActivity);
 activityRouter.get("/today", getTodayActivity);
 activityRouter.get("/stats", getWeeklyActivity);
 
+
+
 export default activityRouter;

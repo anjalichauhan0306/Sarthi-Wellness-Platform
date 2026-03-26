@@ -95,6 +95,16 @@ export function PrivateNavbar() {
                                     Profile Settings ⚙️
                                 </Link>
 
+                                {userData?.isAdmin && (
+                                    <Link
+                                        to="/admin"
+                                        onClick={() => setIsOpen(false)}
+                                        className="block px-4 py-2.5 text-sm text-gray-600 hover:bg-orange-50 hover:text-orange-600 transition-colors"
+                                    >
+                                        Admin Panel 🛠️
+                                    </Link>
+                                )}
+
                                 <div className="border-t border-gray-100 mt-1 pt-1">
                                     <button onClick={logout} className="w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 font-semibold">
                                         Logout

@@ -9,7 +9,10 @@ const activitySchema = new mongoose.Schema({
   },
   contentId: { type: String },
   points: { type: Number, default: 10 },
-  date: { type: Date, default: Date.now },
+  date: {
+    type: String,
+    default: () => new Date().toISOString().split("T")[0],
+  },
   timestamp: { type: Date, default: Date.now },
 });
 

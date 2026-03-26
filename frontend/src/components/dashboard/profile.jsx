@@ -35,15 +35,15 @@ export default function UserProfileForm() {
     const handleSubmit = async (values) => {
         try {
 
-            // 🔥 Mind goals mapping
             const mentalState = {
                 overthinking: values.mindGoals.includes("Overthinking"),
                 anxiety: values.mindGoals.includes("Anxiety"),
-                stress: values.mindGoals.includes("Focus Problems"),
-                lowMood: values.mindGoals.includes("Low Confidence"),
+                loneliness: values.mindGoals.includes("Loneliness"),
+                lowConfidence: values.mindGoals.includes("Low Confidence"),
+                focusProblems: values.mindGoals.includes("Focus Problems"),
+                fearOfFailure: values.mindGoals.includes("Fear of Failure"),
             };
 
-            // 🔥 Goal mapping
             const goalMap = {
                 "Weight Loss": "weight_loss",
                 "Weight Gain": "weight_gain",
@@ -77,10 +77,10 @@ export default function UserProfileForm() {
                     sleepHours: Number(values.sleepHours),
                     screenTimeHours: Number(values.screenTime),
                     exercise: values.exercise?.toLowerCase(),
-                    workType: values.workType,
+                    workType: values.workType?.toLowerCase(),
                 },
             };
-
+            console.log("Form values:", values);
             const data = await updateUserProfile(payload);
             dispatch(setUserData(data));
             setSavedProfile(data);
@@ -170,7 +170,6 @@ export default function UserProfileForm() {
                         )}
                     </div>
 
-                    {/* BASIC INFO */}
                     <section className="bg-white rounded-3xl p-7 shadow-md space-y-5">
                         <h2 className="text-xl font-semibold text-orange-500">
                             👤 Basic Information
@@ -209,13 +208,12 @@ export default function UserProfileForm() {
                                 onChange={handleChange}
                             >
                                 <option value="">Gender</option>
-                                <option>Male</option>
-                                <option>Female</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
                             </select>
                         </div>
                     </section>
 
-                    {/* BODY */}
                     <section className="bg-orange-50 rounded-3xl p-7 space-y-5">
                         <h2 className="text-xl font-semibold text-orange-500">
                             🧍 Body Details

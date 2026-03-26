@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Login from "./components/users/login";
 import Register from "./components/users/register";
 import { PublicNavbar } from "./components/navbar/publicnav";
@@ -15,18 +15,21 @@ import GetCurrentUser from "./customHook/getCurrentUser";
 import { useSelector } from "react-redux";
 import Activity from "./components/activity/activity";
 import GetUserActivity from "./customHook/getUserActivity";
+import AdminPanel from "./components/admin/adminPanel";
 
 export const serverURL = "http://localhost:5000";
 
 export default function App() {
   GetCurrentUser();
   GetUserActivity();
-  const { userData } = useSelector((state) => state.user);
+  const { userData, authLoading } = useSelector((state) => state.user);
+  const location = useLocation();
+  const isAdminPage = location.pathname === "/admin";
 
   return (
     <>
-      {userData ? <PrivateNavbar /> : <PublicNavbar />}
-      <ChatWidget />
+      {!isAdminPage && (userData ? <PrivateNavbar /> : <PublicNavbar />)}
+      {!isAdminPage && <ChatWidget />}
 
       <Routes>
         <Route
@@ -55,6 +58,17 @@ export default function App() {
         <Route
           path="/activity"
           element={<Activity/>}
+        />
+
+        <Route
+          path="/admin"
+          element={
+            authLoading
+              ? <div className="min-h-screen bg-slate-950 flex items-center justify-center"><div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" /></div>
+              : userData?.isAdmin
+              ? <AdminPanel />
+              : <Navigate to="/" />
+          }
         />
        
       </Routes>

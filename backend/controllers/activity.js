@@ -34,17 +34,19 @@ export const logActivity = async (req, res) => {
 
     user.totalPoints = (user.totalPoints || 0) + newActivity.points;
 
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayStr = yesterday.toISOString().split("T")[0];
+const yesterday = new Date();
+yesterday.setDate(yesterday.getDate() - 1);
+const yesterdayStr = yesterday.toISOString().split("T")[0];
 
-    if (user.lastLoginDate === yesterdayStr) {
-      user.streak = (user.streak || 0) + 1;
-    } else if (user.lastLoginDate !== today) {
-      user.streak = 1;
-    }
+if (!user.lastLoginDate) {
+  user.streak = 1;
+} else if (user.lastLoginDate === yesterdayStr) {
+  user.streak = (user.streak || 0) + 1;
+} else if (user.lastLoginDate !== today) {
+  user.streak = 1;
+}
 
-    user.lastLoginDate = today;
+user.lastLoginDate = today;
 
     await user.save();
 

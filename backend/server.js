@@ -7,6 +7,7 @@ import soulRouter from "./routes/soul.js";
 import wellnessRouter from "./routes/wellness.js";
 import activityRouter from "./routes/activity.js";
 import userrouter from "./routes/user.js";
+import adminRoute from "./routes/admin.js";
 import rateLimit from "express-rate-limit";
 
 dotenv.config();
@@ -34,10 +35,10 @@ const limiter = rateLimit({
 app.use(limiter);
 
 
-app.use("/api/soul",limiter,soulRouter)
-app.use("/api/user",userrouter)
-app.use("/api/wellness",limiter, wellnessRouter)
-app.use("/api/activity",activityRouter )
+app.use("/api/soul", limiter, soulRouter);
+app.use("/api/user", userrouter);
+app.use("/api/wellness", limiter, wellnessRouter);
+app.use("/api/activity", activityRouter);
+app.use("/api/admin", adminRoute);
 
 app.listen(5000, () => console.log("Server running on port 5000"));
-
